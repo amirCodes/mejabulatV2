@@ -3,7 +3,9 @@ const router = express.Router()
 // whenever we want to post or get data we have to use this model
 const PostMeeting = require('../models/postMeeting.model') // post/get meeting schema
 const MucOccupantJoined = require('../models/occupantJoined.model')
+const MucOccupantLeft = require('../models/occupantLeft.model')
 const MucRoomDestroyed = require('../models/occupantDestroyed.model')
+
 // get all the alert in dabase
 router.get('/all', async (req, res) => {
   const RoomName = req.query.room_name
@@ -152,6 +154,48 @@ router.post('/occupant/joined', async (req, res) => {
     }
     const saveNewOccupantJoined = await addOccupantJoined.save()
     res.status(200).json(saveNewOccupantJoined)
+  } catch (error) {
+    res.status(400).json({ message: 'Something wrong happend,', error })
+  }
+})
+
+
+//  *******************************************************************************
+// ****************** Occupant left meeting   *******************
+router.post('/occupant/left', async (req, res) => {
+  // const current_date = new Date().toISOString().slice(0, -14)
+  if (!req.body.room_name) {
+    res.status(400).json({ message: 'Content can not be empty!' })
+    return
+  }
+  try {
+    const { NewMeeting } = req.body.room_name
+    const Getexisteddata = await MucOccupantLeft.findOne({ NewMeeting: NewMeeting }).sort({ createdAt: -1 }).limit(1)
+    const { room_name, createdAt } = Getexisteddata
+    const DateFromDB = new Date(createdAt).toISOString().slice(0, -14)
+
+    const addMucOccupantLeft = new MucOccupantLeft({
+      room_jid: req.body.room_jid,
+      even_name: req.body.even_name,
+      room_name: req.body.room_name,
+      is_breakout: req.body.is_breakout,
+      occupant: {
+        name: req.body.occupant.name,
+        email: req.body.occupant.email,
+        id: req.body.occupant.id,
+        occupant_jid: req.body.occupant.room_jid,
+        joined_at: req.body.occupant.joined_at,
+        left_at: req.body.occupant.left_at
+      }
+    })
+
+    // const myNewAlert = (( room_name === req.body.Message) && (DateFromDB === createdAt))
+    const checkNewExistMeeting = (( room_name === req.body.room_name) && (DateFromDB === createdAt.toLocaleDateString('en-CA')))
+    if (checkNewExistMeeting) {
+      return res.status(400).json({ message: 'Meeting already exist' })
+    }
+    const saveNewMucOccupantLeft = await addMucOccupantLeft.save()
+    res.status(200).json(saveNewMucOccupantLeft)
   } catch (error) {
     res.status(400).json({ message: 'Something wrong happend,', error })
   }

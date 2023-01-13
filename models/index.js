@@ -9,5 +9,5 @@ db.url = dbConfig.url
 db.MejabulatMeetingInfo = require('./postMeeting.model.js')(mongoose)
 db.MejabulatMeetingInfo = require('./occupantJoined.model.js')(mongoose)
 db.MejabulatMeetingInfo = require('./occupantDestroyed.model.js')(mongoose)
-
+db.MejabulatMeetingInfo = require('./occupantLeft.model.js')(mongoose)
 module.exports = db
